@@ -1,0 +1,13 @@
+pandas
+numpy
+scikit-learn
+tensorflow
+matplotlib
+seaborn
+yfinance
+nltk
+textblob
+mlflow
+dvc
+fastapi
+uvicorn
