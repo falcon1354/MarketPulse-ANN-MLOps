@@ -1,1 +1,0 @@
-# MarketPulse-ANN-MLOps
