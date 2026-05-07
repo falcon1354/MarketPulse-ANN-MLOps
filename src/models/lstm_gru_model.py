@@ -66,9 +66,6 @@ def build_gru(input_shape):
 # TRAIN & EVALUATE
 # -----------------------------
 def train_and_evaluate(model, name, X_train, X_test, y_train, y_test, class_weights):
-    # Enable automatic logging for TensorFlow/Keras
-    mlflow.tensorflow.autolog()
-
     with mlflow.start_run(run_name=name):
         mlflow.log_param("model_type", name)
         mlflow.log_param("epochs", 50)
