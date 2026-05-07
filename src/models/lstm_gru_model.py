@@ -8,6 +8,7 @@ from sklearn.utils.class_weight import compute_class_weight
 import mlflow
 import mlflow.tensorflow
 
+mlflow.set_tracking_uri("file:./mlruns")
 # -----------------------------
 # LOAD DATA
 # -----------------------------
