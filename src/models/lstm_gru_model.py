@@ -71,6 +71,8 @@ def train_and_evaluate(model, name, X_train, X_test, y_train, y_test, class_weig
 
     with mlflow.start_run(run_name=name):
         mlflow.log_param("model_type", name)
+        mlflow.log_param("epochs", 50)
+        mlflow.log_param("batch_size", 32)
         
         print(f"\nTraining {name} model...")
 
@@ -100,9 +102,8 @@ def train_and_evaluate(model, name, X_train, X_test, y_train, y_test, class_weig
         acc = accuracy_score(y_test, y_pred)
         f1  = f1_score(y_test, y_pred, zero_division=0)
         
-        # Log final metrics manually as well
-        mlflow.log_metric("final_accuracy", acc)
-        mlflow.log_metric("final_f1_score", f1)
+        mlflow.log_metric("accuracy", acc)
+        mlflow.log_metric("f1_score", f1)
 
         print(f"\n{name} Results:")
         print("Accuracy:", round(acc, 4))
@@ -133,6 +134,8 @@ if __name__ == "__main__":
 
     input_shape = (X_train.shape[1], X_train.shape[2])
 
+    mlflow.set_experiment("MarketPulse_ANN_Project")
+    
     # LSTM
     lstm_model = build_lstm(input_shape)
     lstm_acc, lstm_f1 = train_and_evaluate(
