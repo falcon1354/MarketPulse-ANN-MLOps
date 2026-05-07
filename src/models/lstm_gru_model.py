@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, GRU, Dense, Dropout, Input
+from tensorflow.keras.layers import LSTM, GRU, SimpleRNN, Dense, Dropout, Input
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.metrics import accuracy_score, f1_score, classification_report
 from sklearn.utils.class_weight import compute_class_weight
@@ -9,6 +9,7 @@ import mlflow
 import mlflow.tensorflow
 
 mlflow.set_tracking_uri("file:./mlruns")
+
 # -----------------------------
 # LOAD DATA
 # -----------------------------
@@ -30,7 +31,24 @@ def get_class_weights(y_train):
 
 
 # -----------------------------
-# LSTM MODEL (stacked)
+# RNN MODEL
+# -----------------------------
+def build_rnn(input_shape):
+    model = Sequential([
+        Input(shape=input_shape),
+        SimpleRNN(64, activation="tanh", return_sequences=True),
+        Dropout(0.2),
+        SimpleRNN(32, activation="tanh"),
+        Dropout(0.2),
+        Dense(16, activation="relu"),
+        Dense(1,  activation="sigmoid"),
+    ])
+    model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
+    return model
+
+
+# -----------------------------
+# LSTM MODEL
 # -----------------------------
 def build_lstm(input_shape):
     model = Sequential([
@@ -47,7 +65,7 @@ def build_lstm(input_shape):
 
 
 # -----------------------------
-# GRU MODEL (stacked)
+# GRU MODEL
 # -----------------------------
 def build_gru(input_shape):
     model = Sequential([
@@ -94,9 +112,6 @@ def train_and_evaluate(model, name, X_train, X_test, y_train, y_test, class_weig
         y_pred_prob = model.predict(X_test)
         y_pred = (y_pred_prob > 0.5).astype(int).flatten()
 
-        print(f"\n{name} Prediction distribution:", dict(zip(*np.unique(y_pred, return_counts=True))))
-        print(f"True label distribution      :", dict(zip(*np.unique(y_test,  return_counts=True))))
-
         acc = accuracy_score(y_test, y_pred)
         f1  = f1_score(y_test, y_pred, zero_division=0)
         
@@ -117,37 +132,24 @@ def train_and_evaluate(model, name, X_train, X_test, y_train, y_test, class_weig
 if __name__ == "__main__":
     X_train, X_test, y_train, y_test = load_data()
 
-    print("=== DATA SANITY CHECK ===")
-    print("X_train shape:", X_train.shape)
-    print("X_test  shape:", X_test.shape)
-    print("Train label dist:", dict(zip(*np.unique(y_train, return_counts=True))))
-    print("Test  label dist:", dict(zip(*np.unique(y_test,  return_counts=True))))
-
-    if len(np.unique(y_test)) < 2:
-        print("\nWARNING: Test set has only one class — metrics will be 0.0")
-        print("   Re-run data_ingestion.py + dataset_builder.py to get more data.\n")
+    mlflow.set_experiment("MarketPulse_ANN_Project")
 
     class_weights = get_class_weights(y_train)
-    print("Class weights:", class_weights)
-
     input_shape = (X_train.shape[1], X_train.shape[2])
 
-    mlflow.set_experiment("MarketPulse_ANN_Project")
-    
-    # LSTM
-    lstm_model = build_lstm(input_shape)
-    lstm_acc, lstm_f1 = train_and_evaluate(
-        lstm_model, "LSTM",
-        X_train, X_test, y_train, y_test, class_weights,
-    )
+    # 1. RNN
+    rnn_model = build_rnn(input_shape)
+    rnn_acc, rnn_f1 = train_and_evaluate(rnn_model, "RNN", X_train, X_test, y_train, y_test, class_weights)
 
-    # GRU
+    # 2. LSTM
+    lstm_model = build_lstm(input_shape)
+    lstm_acc, lstm_f1 = train_and_evaluate(lstm_model, "LSTM", X_train, X_test, y_train, y_test, class_weights)
+
+    # 3. GRU
     gru_model = build_gru(input_shape)
-    gru_acc, gru_f1 = train_and_evaluate(
-        gru_model, "GRU",
-        X_train, X_test, y_train, y_test, class_weights,
-    )
+    gru_acc, gru_f1 = train_and_evaluate(gru_model, "GRU", X_train, X_test, y_train, y_test, class_weights)
 
     print("\nFINAL COMPARISON")
+    print(f"RNN  -> Accuracy: {rnn_acc:.4f} | F1: {rnn_f1:.4f}")
     print(f"LSTM -> Accuracy: {lstm_acc:.4f} | F1: {lstm_f1:.4f}")
     print(f"GRU  -> Accuracy: {gru_acc:.4f} | F1: {gru_f1:.4f}")
