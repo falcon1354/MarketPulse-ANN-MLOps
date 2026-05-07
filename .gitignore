@@ -1,0 +1,16 @@
+# Data files
+data/*.npy
+data/*.pkl
+data/*.csv
+
+# MLflow
+mlflow.db
+mlruns/
+
+# Python
+__pycache__/
+*.pyc
+
+# IDEs
+.vscode/
+.idea/
