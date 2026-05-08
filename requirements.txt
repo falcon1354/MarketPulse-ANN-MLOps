@@ -11,3 +11,5 @@ mlflow
 dvc
 fastapi
 uvicorn
+joblib
+feedparser

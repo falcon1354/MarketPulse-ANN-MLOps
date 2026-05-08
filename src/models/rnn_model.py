@@ -93,4 +93,8 @@ def train_model():
 # MAIN
 # -----------------------------
 if __name__ == "__main__":
-    train_model()
+    import os
+    os.makedirs("models", exist_ok=True)
+    model, history = train_model()
+    model.save("models/rnn_model.keras")
+    print("\n[SAVED] RNN model -> models/rnn_model.keras")
