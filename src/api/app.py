@@ -12,7 +12,7 @@ FEATURE_COLS = ["sentiment_score", "price"]
 WINDOW_SIZE  = 10
 
 # ── Load model & scaler ─────────────────────────────────────────────────────
-model  = tf.keras.models.load_model("models/lstm_model.h5")
+model  = tf.keras.models.load_model("models/lstm_model.keras")
 scaler = joblib.load("data/scaler.pkl")
 
 # Sanity-check: scaler must have been fitted on the same number of features
