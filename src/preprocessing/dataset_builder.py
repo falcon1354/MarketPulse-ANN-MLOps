@@ -18,9 +18,14 @@ def load_data(path="data/processed_data.csv"):
 # -----------------------------
 # CREATE SEQUENCES (RNN/LSTM/GRU)
 # -----------------------------
+# FEATURE_COLS defines the canonical feature set shared by training AND inference.
+# Any change here must be mirrored in the API (app.py).
+FEATURE_COLS = ["sentiment_score", "price"]
+
+
 def create_sequences(data, window_size=10):
     X, y = [], []
-    features = data[["sentiment_score", "price", "price_change"]].values
+    features = data[FEATURE_COLS].values
     labels   = data["label"].values
 
     for i in range(len(data) - window_size):
@@ -37,10 +42,6 @@ def prepare_dataset():
     df = load_data()
     print("Dataset loaded:", df.shape)
     print("Full label distribution:", df["label"].value_counts().to_dict())
-    
-    # Add price_change feature (grouped by ticker to avoid jumps between stocks)
-    df["price_change"] = df.groupby("ticker")["price"].diff()
-    df = df.dropna()
 
     # ── Step 1: Chronological split BEFORE any scaling ──────────────────────
     # shuffle=False is mandatory for time-series — future must not leak into past
@@ -50,13 +51,14 @@ def prepare_dataset():
     print(f"Train rows: {len(df_train)} | Test rows: {len(df_test)}")
 
     # ── Step 2: Scale (fit ONLY on train to prevent data leakage) ───────────
-    feature_cols = ["sentiment_score", "price", "price_change"]
+    # IMPORTANT: FEATURE_COLS must match the features sent by the inference API.
     scaler = StandardScaler()
-    df_train[feature_cols] = scaler.fit_transform(df_train[feature_cols])
-    df_test[feature_cols]  = scaler.transform(df_test[feature_cols])
+    df_train[FEATURE_COLS] = scaler.fit_transform(df_train[FEATURE_COLS])
+    df_test[FEATURE_COLS]  = scaler.transform(df_test[FEATURE_COLS])
 
     os.makedirs("data", exist_ok=True)
     joblib.dump(scaler, "data/scaler.pkl")
+    print(f"Scaler fitted on features: {FEATURE_COLS}")
     print("Scaler saved to data/scaler.pkl")
 
     # ── Step 3: Create sequences from each split separately ─────────────────

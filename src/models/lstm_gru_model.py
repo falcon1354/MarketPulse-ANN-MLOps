@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
@@ -137,17 +138,26 @@ if __name__ == "__main__":
     class_weights = get_class_weights(y_train)
     input_shape = (X_train.shape[1], X_train.shape[2])
 
+    # Ensure models directory exists
+    os.makedirs("models", exist_ok=True)
+
     # 1. RNN
     rnn_model = build_rnn(input_shape)
     rnn_acc, rnn_f1 = train_and_evaluate(rnn_model, "RNN", X_train, X_test, y_train, y_test, class_weights)
+    rnn_model.save("models/rnn_model.h5")
+    print("[SAVED] RNN model -> models/rnn_model.h5")
 
     # 2. LSTM
     lstm_model = build_lstm(input_shape)
     lstm_acc, lstm_f1 = train_and_evaluate(lstm_model, "LSTM", X_train, X_test, y_train, y_test, class_weights)
+    lstm_model.save("models/lstm_model.h5")
+    print("[SAVED] LSTM model -> models/lstm_model.h5")
 
     # 3. GRU
     gru_model = build_gru(input_shape)
     gru_acc, gru_f1 = train_and_evaluate(gru_model, "GRU", X_train, X_test, y_train, y_test, class_weights)
+    gru_model.save("models/gru_model.h5")
+    print("[SAVED] GRU model -> models/gru_model.h5")
 
     print("\nFINAL COMPARISON")
     print(f"RNN  -> Accuracy: {rnn_acc:.4f} | F1: {rnn_f1:.4f}")
