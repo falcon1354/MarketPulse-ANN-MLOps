@@ -11,5 +11,6 @@ mlflow
 dvc
 fastapi
 uvicorn
+keras==3.12.2
 joblib
 feedparser
