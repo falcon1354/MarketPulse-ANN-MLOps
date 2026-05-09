@@ -1,0 +1,30 @@
+version: '3'
+services:
+  airflow-webserver:
+    image: apache/airflow:2.8.1
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - airflow-data:/opt/airflow
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    command: >
+      bash -c "airflow db init &&
+      airflow users create --username airflow --password airflow --firstname Admin --lastname User --role Admin --email admin@mail.com &&
+      airflow webserver"
+
+  airflow-scheduler:
+    image: apache/airflow:2.8.1
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - airflow-data:/opt/airflow
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    depends_on:
+      - airflow-webserver
+    command: >
+      bash -c "sleep 20 && airflow scheduler"
+
+volumes:
+  airflow-data:
