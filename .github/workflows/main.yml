@@ -7,15 +7,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4  # Updated to v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5  # Updated to v5
       with:
         python-version: '3.10'
 
     - name: Install dependencies
       run: pip install -r requirements.txt
+
+    - name: Create Dummy Data for CI
+      run: |
+        mkdir -p data
+        python -c "import numpy as np; import pandas as pd; \
+          X = np.random.rand(100, 10, 2); \
+          y = np.random.randint(0, 2, 100); \
+          np.save('data/X_train.npy', X); \
+          np.save('data/X_test.npy', X); \
+          np.save('data/y_train.npy', y); \
+          np.save('data/y_test.npy', y); \
+          pd.DataFrame({'sentiment_score': [0.1]*10, 'price': [100]*10, 'timestamp': range(10), 'label': [0]*10}).to_csv('data/processed_data.csv', index=False)"
 
     - name: Run training
       run: python src/models/lstm_gru_model.py
